@@ -19,6 +19,7 @@ import textwrap
 from typing import List, Optional, Dict, Any
 
 import requests
+import httpx
 from openai import OpenAI
 
 # ─── Configuration ────────────────────────────────────────────────────────────
@@ -279,29 +280,34 @@ def main():
         print("Please set HF_TOKEN or API_KEY before running inference.", file=sys.stderr)
         sys.exit(1)
     
-    # Try to initialize OpenAI client with flexibility for different environments
+    # Create a custom httpx client that explicitly ignores proxies
+    # This prevents the validation environment from injecting proxy settings
     try:
-        # Try standard initialization first
-        client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
-    except TypeError as e:
-        if "proxies" in str(e):
-            # Some environments (like validation) may try to inject proxies
-            # OpenAI v2+ doesn't support proxies parameter directly
-            print("[WARNING] Proxies parameter not supported, using basic client initialization", file=sys.stderr)
-            try:
-                # Try with just the minimal required parameters
-                client = OpenAI(api_key=API_KEY, base_url=API_BASE_URL, timeout=60.0)
-            except Exception as e2:
-                print(f"[ERROR] Failed to initialize OpenAI client: {e2}", file=sys.stderr)
-                print(f"API_BASE_URL: {API_BASE_URL}", file=sys.stderr)
-                sys.exit(1)
-        else:
-            raise
+        http_client = httpx.Client(
+            timeout=60.0,
+            follow_redirects=True,
+            # Explicitly set proxies to None to prevent injection
+            proxies=None,
+        )
+        
+        client = OpenAI(
+            api_key=API_KEY,
+            base_url=API_BASE_URL,
+            http_client=http_client,
+        )
     except Exception as e:
-        print(f"[ERROR] Failed to initialize OpenAI client: {e}", file=sys.stderr)
-        print(f"API_BASE_URL: {API_BASE_URL}", file=sys.stderr)
-        print("Please check your environment variables and API configuration.", file=sys.stderr)
-        sys.exit(1)
+        # If that fails, try without any custom client
+        print(f"[WARNING] Custom httpx client failed: {e}", file=sys.stderr)
+        try:
+            client = OpenAI(
+                api_key=API_KEY,
+                base_url=API_BASE_URL,
+            )
+        except Exception as e2:
+            print(f"[ERROR] Failed to initialize OpenAI client: {e2}", file=sys.stderr)
+            print(f"API_BASE_URL: {API_BASE_URL}", file=sys.stderr)
+            print("Please check your environment variables and API configuration.", file=sys.stderr)
+            sys.exit(1)
     
     env_client = EnvClient(base_url=ENV_BASE_URL)
 
