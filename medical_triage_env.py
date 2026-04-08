@@ -309,6 +309,14 @@ def grade_esi_assignment(assigned: int, correct: int) -> float:
     return max(0.001, min(0.999, score))
 
 
+def clamp_score(score: float) -> float:
+    """
+    Clamp any score to be strictly between 0 and 1 (exclusive).
+    Validator requires scores in range (0, 1) not [0, 1].
+    """
+    return max(0.001, min(0.999, score))
+
+
 def grade_intake_interview(
     collected_fields: Dict[str, Any],
     required_fields: List[str],
@@ -585,11 +593,11 @@ class MedicalTriageEnv:
             score = grade_esi_assignment(level, patient.correct_esi_level)
             self._state["assigned_level"] = level
             self._state["done"] = True
-            reward = score
+            reward = clamp_score(score)  # Ensure clamped
             self._state["rewards"].append(reward)
 
-            if score == 1.0:
-                msg = f"✓ Correct! ESI Level {level} assigned. Score: 1.0"
+            if score >= 0.99:  # Near-perfect score
+                msg = f"✓ Correct! ESI Level {level} assigned. Score: {score:.2f}"
             elif score >= 0.5:
                 msg = (f"Close — you assigned ESI {level}, correct is ESI "
                        f"{patient.correct_esi_level}. Score: {score:.2f}")
@@ -708,7 +716,7 @@ class MedicalTriageEnv:
                 obs.done = True
                 obs.message = msg + f"\n\n⏱ Time limit reached. Final intake score: {final_score:.2f}"
                 return StepResult(
-                    observation=obs, reward=reward, done=True,
+                    observation=obs, reward=clamp_score(final_score), done=True,
                     info={"final_score": final_score, "collected": list(collected.keys())},
                 )
 
@@ -718,7 +726,7 @@ class MedicalTriageEnv:
             self._state["done"] = True
             final_score = grade_intake_interview(collected, INTAKE_REQUIRED_FIELDS, step)
             missing = [f for f in INTAKE_REQUIRED_FIELDS if f not in collected]
-            reward = final_score
+            reward = clamp_score(final_score)  # Ensure clamped
             self._state["rewards"].append(reward)
             msg = (
                 f"Intake completed at step {step}.\n"
@@ -820,7 +828,7 @@ class MedicalTriageEnv:
                 )
                 obs = self._build_queue_obs(queue, step, msg, done=True)
                 return StepResult(
-                    observation=obs, reward=final_score, done=True,
+                    observation=obs, reward=clamp_score(final_score), done=True,
                     info={"final_score": final_score, "optimal": optimal, "submitted": filtered},
                 )
 
