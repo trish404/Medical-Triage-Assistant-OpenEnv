@@ -298,13 +298,15 @@ def grade_esi_assignment(assigned: int, correct: int) -> float:
     """Score 1.0 for exact match, decreasing for each level off."""
     diff = abs(assigned - correct)
     if diff == 0:
-        return 1.0
+        score = 1.0
     elif diff == 1:
-        return 0.5
+        score = 0.5
     elif diff == 2:
-        return 0.2
+        score = 0.2
     else:
-        return 0.0
+        score = 0.0
+    # Clamp to (0.001, 0.999) to satisfy validator requirement
+    return max(0.001, min(0.999, score))
 
 
 def grade_intake_interview(
@@ -329,7 +331,9 @@ def grade_intake_interview(
     else:
         efficiency = 0.1
 
-    return round(0.7 * completeness + 0.3 * efficiency, 4)
+    score = round(0.7 * completeness + 0.3 * efficiency, 4)
+    # Clamp to (0.001, 0.999) to satisfy validator requirement
+    return max(0.001, min(0.999, score))
 
 
 def kendall_tau_score(predicted: List[str], optimal: List[str]) -> float:
@@ -339,7 +343,8 @@ def kendall_tau_score(predicted: List[str], optimal: List[str]) -> float:
     """
     n = len(optimal)
     if n <= 1:
-        return 1.0
+        score = 1.0
+        return max(0.001, min(0.999, score))
 
     rank_map = {pid: i for i, pid in enumerate(optimal)}
     pred_filtered = [p for p in predicted if p in rank_map]
@@ -358,8 +363,11 @@ def kendall_tau_score(predicted: List[str], optimal: List[str]) -> float:
                 discordant += 1
 
     if pairs == 0:
-        return 0.0
-    return (concordant - discordant) / pairs * 0.5 + 0.5
+        score = 0.0
+    else:
+        score = (concordant - discordant) / pairs * 0.5 + 0.5
+    # Clamp to (0.001, 0.999) to satisfy validator requirement
+    return max(0.001, min(0.999, score))
 
 
 def grade_queue_management(
@@ -397,7 +405,9 @@ def grade_queue_management(
         idx = submitted_order.index("Q003") if "Q003" in submitted_order else 999
         deterioration_score = max(0.0, 1.0 - idx * 0.2)
 
-    return round(0.6 * tau + 0.2 * critical_score + 0.2 * deterioration_score, 4)
+    score = round(0.6 * tau + 0.2 * critical_score + 0.2 * deterioration_score, 4)
+    # Clamp to (0.001, 0.999) to satisfy validator requirement
+    return max(0.001, min(0.999, score))
 
 
 # ─── Environment Class ────────────────────────────────────────────────────────
