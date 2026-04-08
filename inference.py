@@ -273,7 +273,20 @@ def run_episode(
 # ─── Main ────────────────────────────────────────────────────────────────────
 
 def main():
-    client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+    # Validate required environment variables
+    if API_KEY == "dummy":
+        print("[ERROR] Missing required environment variable: HF_TOKEN or API_KEY", file=sys.stderr)
+        print("Please set HF_TOKEN or API_KEY before running inference.", file=sys.stderr)
+        sys.exit(1)
+    
+    try:
+        client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+    except Exception as e:
+        print(f"[ERROR] Failed to initialize OpenAI client: {e}", file=sys.stderr)
+        print(f"API_BASE_URL: {API_BASE_URL}", file=sys.stderr)
+        print("Please check your environment variables and API configuration.", file=sys.stderr)
+        sys.exit(1)
+    
     env_client = EnvClient(base_url=ENV_BASE_URL)
 
     task_types = [
