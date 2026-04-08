@@ -31,6 +31,7 @@ dependencies = [
     "requests==2.32.3",
     "openai==1.51.0",
     "PyYAML==6.0.2",
+    "openenv-core>=0.2.0",
 ]
 
 [project.optional-dependencies]
@@ -42,7 +43,10 @@ dev = [
 ]
 
 [project.scripts]
-medical-triage-server = "server:main"
+medical-triage-server = "uvicorn:main"
+
+[project.entry-points."openenv.server"]
+server = "server:app"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
