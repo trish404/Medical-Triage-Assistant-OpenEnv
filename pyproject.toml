@@ -3,7 +3,7 @@ name = "medical-triage-env"
 version = "1.0.0"
 description = "A non-diagnostic medical triage environment for evaluating AI agents on real-world clinical triage workflows"
 readme = "README.md"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.8"
 license = {text = "MIT"}
 keywords = ["medical", "triage", "openenv", "AI", "healthcare", "emergency-department"]
 authors = [
@@ -29,9 +29,8 @@ dependencies = [
     "uvicorn[standard]==0.30.6",
     "pydantic==2.9.2",
     "requests==2.32.3",
-    "openai>=2.7.2",
+    "openai==1.51.0",
     "PyYAML==6.0.2",
-    "openenv-core>=0.2.0",
 ]
 
 [project.optional-dependencies]
@@ -43,7 +42,7 @@ dev = [
 ]
 
 [project.scripts]
-server = "server.app:main"
+medical-triage-server = "server:main"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
