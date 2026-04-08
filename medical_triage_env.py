@@ -608,7 +608,7 @@ class MedicalTriageEnv:
             obs = self._build_esi_obs(patient, step, message=msg, done=True)
             return StepResult(
                 observation=obs, reward=reward, done=True,
-                info={"score": score, "assigned": level, "correct": patient.correct_esi_level},
+                info={"score": clamp_score(score), "assigned": level, "correct": patient.correct_esi_level},
             )
 
         elif action.action_type == "request_vitals":
@@ -717,7 +717,7 @@ class MedicalTriageEnv:
                 obs.message = msg + f"\n\n⏱ Time limit reached. Final intake score: {final_score:.2f}"
                 return StepResult(
                     observation=obs, reward=clamp_score(final_score), done=True,
-                    info={"final_score": final_score, "collected": list(collected.keys())},
+                    info={"final_score": clamp_score(final_score), "collected": list(collected.keys())},
                 )
 
             return StepResult(observation=obs, reward=reward, done=False, info={})
@@ -737,7 +737,7 @@ class MedicalTriageEnv:
             obs = self._build_intake_obs(patient, step, conversation, msg, done=True)
             return StepResult(
                 observation=obs, reward=reward, done=True,
-                info={"final_score": final_score, "collected": list(collected.keys()), "missing": missing},
+                info={"final_score": clamp_score(final_score), "collected": list(collected.keys()), "missing": missing},
             )
         else:
             reward = -0.05
@@ -829,7 +829,7 @@ class MedicalTriageEnv:
                 obs = self._build_queue_obs(queue, step, msg, done=True)
                 return StepResult(
                     observation=obs, reward=clamp_score(final_score), done=True,
-                    info={"final_score": final_score, "optimal": optimal, "submitted": filtered},
+                    info={"final_score": clamp_score(final_score), "optimal": optimal, "submitted": filtered},
                 )
 
             msg = (
