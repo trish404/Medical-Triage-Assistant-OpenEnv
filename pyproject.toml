@@ -43,10 +43,7 @@ dev = [
 ]
 
 [project.scripts]
-medical-triage-server = "uvicorn:main"
-
-[project.entry-points."openenv.server"]
-server = "server:app"
+server = "server.app:main"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
