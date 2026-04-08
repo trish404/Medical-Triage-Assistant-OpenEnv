@@ -279,8 +279,24 @@ def main():
         print("Please set HF_TOKEN or API_KEY before running inference.", file=sys.stderr)
         sys.exit(1)
     
+    # Try to initialize OpenAI client with flexibility for different environments
     try:
+        # Try standard initialization first
         client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+    except TypeError as e:
+        if "proxies" in str(e):
+            # Some environments (like validation) may try to inject proxies
+            # OpenAI v2+ doesn't support proxies parameter directly
+            print("[WARNING] Proxies parameter not supported, using basic client initialization", file=sys.stderr)
+            try:
+                # Try with just the minimal required parameters
+                client = OpenAI(api_key=API_KEY, base_url=API_BASE_URL, timeout=60.0)
+            except Exception as e2:
+                print(f"[ERROR] Failed to initialize OpenAI client: {e2}", file=sys.stderr)
+                print(f"API_BASE_URL: {API_BASE_URL}", file=sys.stderr)
+                sys.exit(1)
+        else:
+            raise
     except Exception as e:
         print(f"[ERROR] Failed to initialize OpenAI client: {e}", file=sys.stderr)
         print(f"API_BASE_URL: {API_BASE_URL}", file=sys.stderr)
